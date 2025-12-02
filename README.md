@@ -1,6 +1,6 @@
-# Outlivion Backend API
+# Outlivion API Server
 
-Backend API для VPN платформы Outlivion.
+API сервер для VPN платформы Outlivion.
 
 ## 🚀 Быстрый старт
 

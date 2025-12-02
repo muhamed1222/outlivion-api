@@ -1,7 +1,7 @@
 {
-  "name": "outlivion-backend",
+  "name": "outlivion-api",
   "version": "1.0.0",
-  "description": "Outlivion VPN Backend API",
+  "description": "Outlivion VPN API Server",
   "main": "dist/index.js",
   "scripts": {
     "dev": "tsx watch src/index.ts",
@@ -16,7 +16,7 @@
   "keywords": [
     "vpn",
     "outlivion",
-    "backend"
+    "api"
   ],
   "author": "",
   "license": "ISC",
