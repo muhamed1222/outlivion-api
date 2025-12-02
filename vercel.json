@@ -2,35 +2,15 @@
   "version": 2,
   "builds": [
     {
-      "src": "dist/index.js",
+      "src": "src/index.ts",
       "use": "@vercel/node"
     }
   ],
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "dist/index.js"
+      "dest": "src/index.ts"
     }
-  ],
-  "env": {
-    "DATABASE_URL": "@database_url",
-    "PORT": "3001",
-    "NODE_ENV": "production",
-    "JWT_SECRET": "@jwt_secret",
-    "JWT_ACCESS_EXPIRES_IN": "1h",
-    "JWT_REFRESH_EXPIRES_IN": "7d",
-    "TELEGRAM_BOT_TOKEN": "@telegram_bot_token",
-    "MARZBAN_URL": "@marzban_url",
-    "MARZBAN_USERNAME": "@marzban_username",
-    "MARZBAN_PASSWORD": "@marzban_password",
-    "MERCURYO_API_KEY": "@mercuryo_api_key",
-    "MERCURYO_SECRET": "@mercuryo_secret",
-    "MERCURYO_WEBHOOK_SECRET": "@mercuryo_webhook_secret",
-    "FRONTEND_URL": "@frontend_url",
-    "PORTAL_URL": "@portal_url",
-    "MINIAPP_URL": "@miniapp_url",
-    "LANDING_URL": "@landing_url",
-    "DASHBOARD_URL": "@dashboard_url"
-  }
+  ]
 }
 
