@@ -205,53 +205,59 @@ app.use(notFoundHandler);
 app.use(errorHandler);
 
 // ===================
-// Server Startup
+// Server Startup (only for local development)
 // ===================
 
-const server = app.listen(PORT, () => {
-  logger.info(`Server started`, {
-    port: PORT,
-    environment: process.env.NODE_ENV || 'development',
-    nodeVersion: process.version,
-  });
-  
-  // Start cron jobs
-  startSubscriptionChecker();
-  logger.info('Cron jobs initialized');
-});
+// Check if running on Vercel (serverless) or locally
+const isVercel = process.env.VERCEL === '1';
 
-// Graceful shutdown
-const gracefulShutdown = (signal: string) => {
-  logger.info(`${signal} received, starting graceful shutdown...`);
-  
-  server.close((err) => {
-    if (err) {
-      logger.error('Error during server close', { error: err.message });
-      process.exit(1);
-    }
+if (!isVercel) {
+  const server = app.listen(PORT, () => {
+    logger.info(`Server started`, {
+      port: PORT,
+      environment: process.env.NODE_ENV || 'development',
+      nodeVersion: process.version,
+    });
     
-    logger.info('Server closed successfully');
-    process.exit(0);
+    // Start cron jobs (only in non-serverless environment)
+    startSubscriptionChecker();
+    logger.info('Cron jobs initialized');
   });
-  
-  // Force shutdown after 30 seconds
-  setTimeout(() => {
-    logger.error('Forced shutdown after timeout');
+
+  // Graceful shutdown
+  const gracefulShutdown = (signal: string) => {
+    logger.info(`${signal} received, starting graceful shutdown...`);
+    
+    server.close((err) => {
+      if (err) {
+        logger.error('Error during server close', { error: err.message });
+        process.exit(1);
+      }
+      
+      logger.info('Server closed successfully');
+      process.exit(0);
+    });
+    
+    // Force shutdown after 30 seconds
+    setTimeout(() => {
+      logger.error('Forced shutdown after timeout');
+      process.exit(1);
+    }, 30000);
+  };
+
+  process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+  process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+
+  // Handle uncaught exceptions
+  process.on('uncaughtException', (error) => {
+    logger.error('Uncaught Exception', { error: error.message, stack: error.stack });
     process.exit(1);
-  }, 30000);
-};
+  });
 
-process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
-process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+  process.on('unhandledRejection', (reason, promise) => {
+    logger.error('Unhandled Rejection', { reason: String(reason) });
+  });
+}
 
-// Handle uncaught exceptions
-process.on('uncaughtException', (error) => {
-  logger.error('Uncaught Exception', { error: error.message, stack: error.stack });
-  process.exit(1);
-});
-
-process.on('unhandledRejection', (reason, promise) => {
-  logger.error('Unhandled Rejection', { reason: String(reason) });
-});
-
+// Export for Vercel serverless
 export default app;

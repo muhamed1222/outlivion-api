@@ -1,18 +1,18 @@
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { Pool } from 'pg';
 import * as schema from './schema';
-import * as dotenv from 'dotenv';
-import * as path from 'path';
 
-// Загружаем переменные окружения
-dotenv.config({ path: path.resolve(__dirname, '../../.env') });
+// На Vercel переменные окружения загружаются автоматически
+// Для локальной разработки dotenv загружается в index.ts
 
 if (!process.env.DATABASE_URL) {
+  console.error('DATABASE_URL is not set. Available env vars:', Object.keys(process.env).filter(k => !k.startsWith('npm_')));
   throw new Error('DATABASE_URL is not set');
 }
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
 });
 
 export const db = drizzle(pool, { schema });
