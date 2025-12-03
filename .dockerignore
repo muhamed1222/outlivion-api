@@ -1,0 +1,37 @@
+# Dependencies
+node_modules
+npm-debug.log
+
+# Development files
+*.md
+.git
+.gitignore
+.env
+.env.*
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+dist
+
+# Documentation
+README.md
+QUICK_START.md
+RAILWAY_ENV.md
+RAILWAY_ENV.txt
+
+# Test files
+api/test.ts
+
+# Logs
+logs
+*.log
+
