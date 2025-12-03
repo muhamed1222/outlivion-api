@@ -159,6 +159,10 @@ pnpm db:studio      # Drizzle Studio GUI
 # Database (ОБЯЗАТЕЛЬНО!)
 DATABASE_URL=postgresql://...neon.tech/outlivion_db?sslmode=require
 
+# Server
+PORT=3001
+NODE_ENV=production
+
 # JWT (min 32 chars!)
 JWT_SECRET=your-super-secret-jwt-key-min-32-chars
 JWT_ACCESS_EXPIRES_IN=1h
@@ -177,9 +181,11 @@ MERCURYO_API_KEY=key
 MERCURYO_SECRET=secret
 MERCURYO_WEBHOOK_SECRET=webhook_secret
 
-# Frontend URLs
+# Frontend URLs (PRODUCTION)
 FRONTEND_URL=https://outlivion.space
-MINIAPP_URL=https://bot.outlivion.space
+PORTAL_URL=https://portal.outlivion.space
+MINIAPP_URL=https://app.outlivion.space
+LANDING_URL=https://outlivion.space
 DASHBOARD_URL=https://dashboard.outlivion.space
 ```
 
@@ -188,7 +194,7 @@ DASHBOARD_URL=https://dashboard.outlivion.space
 ## 🔗 Связи с другими компонентами
 
 ```
-Mini App (bot.outlivion.space)
+Mini App (app.outlivion.space)
     ↓ REST API + JWT
 outlivion-api (api.outlivion.space)
     ↓ SQL + SSL
@@ -198,7 +204,7 @@ Neon PostgreSQL
 ```
 Dashboard (dashboard.outlivion.space)
     ↓ /admin/* endpoints
-outlivion-api
+outlivion-api (api.outlivion.space)
     ↓
 Marzban + Mercuryo + Telegram
 ```
