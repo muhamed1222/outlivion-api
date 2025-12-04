@@ -7,7 +7,7 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { db } from '../db';
 import { loginSessions, users } from '../db/schema';
-import { eq, and, gt } from 'drizzle-orm';
+import { eq, and, gt, desc } from 'drizzle-orm';
 import { generateAccessToken, generateRefreshToken } from '../utils/jwt';
 import logger from '../utils/logger';
 import crypto from 'crypto';
@@ -322,6 +322,49 @@ router.get('/check-login', checkLoginLimiter, async (req, res) => {
     }
 
     res.status(500).json({ error: 'Failed to check login' });
+  }
+});
+
+/**
+ * GET /auth/bot/pending-session?telegramId=XXX
+ * Check if user has pending login session
+ * Used by bot to proactively offer login confirmation
+ */
+router.get('/pending-session', async (req, res) => {
+  try {
+    const { telegramId } = req.query as { telegramId?: string };
+    
+    if (!telegramId) {
+      return res.status(400).json({ error: 'telegramId is required' });
+    }
+    
+    // Find pending session for this user (created in last 5 minutes)
+    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+    
+    const [session] = await db
+      .select()
+      .from(loginSessions)
+      .where(and(
+        eq(loginSessions.status, 'pending'),
+        gt(loginSessions.expiresAt, new Date())
+      ))
+      .orderBy(desc(loginSessions.createdAt))
+      .limit(1);
+    
+    if (!session) {
+      return res.json({ 
+        hasPendingSession: false,
+      });
+    }
+    
+    res.json({
+      hasPendingSession: true,
+      token: session.token,
+      expiresAt: session.expiresAt,
+    });
+  } catch (error: any) {
+    logger.error('Failed to check pending session', { error: error.message });
+    res.status(500).json({ error: 'Failed to check pending session' });
   }
 });
 

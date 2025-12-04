@@ -106,10 +106,11 @@ const generalLimiter = rateLimit({
   },
 });
 
-// Strict rate limit for auth - 5 requests per hour
+// Strict rate limit for auth - 10 requests per hour (production)
+// Более мягкий лимит в development для тестирования
 const authLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000, // 1 hour
-  max: 10, // 10 auth attempts per hour
+  windowMs: IS_PRODUCTION ? 60 * 60 * 1000 : 5 * 60 * 1000, // 1 hour (prod) / 5 min (dev)
+  max: IS_PRODUCTION ? 10 : 100, // 10 (prod) / 100 (dev) auth attempts
   message: { error: 'Too many authentication attempts, please try again later' },
   standardHeaders: true,
   legacyHeaders: false,
@@ -189,10 +190,15 @@ app.get('/health', (req, res) => {
 // ===================
 
 // Auth routes with strict rate limiting
-app.use('/auth', authLimiter, authRoutes);
-
-// Bot authentication routes (Telegram deep-link login)
-app.use('/auth/bot', authLimiter, botAuthRoutes);
+// В development отключаем для удобства тестирования
+if (IS_PRODUCTION) {
+  app.use('/auth', authLimiter, authRoutes);
+  app.use('/auth/bot', authLimiter, botAuthRoutes);
+} else {
+  console.log('⚠️  Development mode: Rate limiting disabled for /auth routes');
+  app.use('/auth', authRoutes);
+  app.use('/auth/bot', botAuthRoutes);
+}
 
 // User routes
 app.use('/user', userRoutes);
