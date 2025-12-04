@@ -109,8 +109,8 @@ const generalLimiter = rateLimit({
 // Strict rate limit for auth - 10 requests per hour (production)
 // Более мягкий лимит в development для тестирования
 const authLimiter = rateLimit({
-  windowMs: IS_PRODUCTION ? 60 * 60 * 1000 : 5 * 60 * 1000, // 1 hour (prod) / 5 min (dev)
-  max: IS_PRODUCTION ? 10 : 100, // 10 (prod) / 100 (dev) auth attempts
+  windowMs: IS_PRODUCTION ? 15 * 60 * 1000 : 5 * 60 * 1000, // 15 min (prod) / 5 min (dev)
+  max: IS_PRODUCTION ? 50 : 100, // 50 (prod) / 100 (dev) auth attempts
   message: { error: 'Too many authentication attempts, please try again later' },
   standardHeaders: true,
   legacyHeaders: false,
