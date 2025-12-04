@@ -8,7 +8,7 @@ import { z } from 'zod';
 import { db } from '../db';
 import { loginSessions, users } from '../db/schema';
 import { eq, and, gt, desc } from 'drizzle-orm';
-import { generateAccessToken, generateRefreshToken } from '../utils/jwt';
+import { createTokenPair } from '../utils/jwt';
 import logger from '../utils/logger';
 import crypto from 'crypto';
 import { 
@@ -164,7 +164,7 @@ router.post('/confirm-login', confirmLoginLimiter, async (req, res) => {
 
     if (!user) {
       // Create new user
-      [user] = await db
+      const result = await db
         .insert(users)
         .values({
           telegramId,
@@ -174,11 +174,12 @@ router.post('/confirm-login', confirmLoginLimiter, async (req, res) => {
           photoUrl: photoUrl || null,
         })
         .returning();
+      user = result[0];
 
       logger.info('New user created via bot login', { userId: user.id, telegramId });
     } else {
       // Update existing user info
-      [user] = await db
+      const result = await db
         .update(users)
         .set({
           username: username || user.username,
@@ -189,6 +190,7 @@ router.post('/confirm-login', confirmLoginLimiter, async (req, res) => {
         })
         .where(eq(users.id, user.id))
         .returning();
+      user = result[0];
 
       logger.info('Existing user updated via bot login', { userId: user.id, telegramId });
     }
@@ -280,12 +282,7 @@ router.get('/check-login', checkLoginLimiter, async (req, res) => {
       }
 
       // Generate JWT tokens
-      const accessToken = generateAccessToken({
-        userId: user.id,
-        telegramId: user.telegramId,
-      });
-
-      const refreshToken = generateRefreshToken({
+      const tokens = createTokenPair({
         userId: user.id,
         telegramId: user.telegramId,
       });
@@ -295,8 +292,8 @@ router.get('/check-login', checkLoginLimiter, async (req, res) => {
       return res.json({
         status: 'approved',
         message: 'Login confirmed successfully',
-        accessToken,
-        refreshToken,
+        accessToken: tokens.accessToken,
+        refreshToken: tokens.refreshToken,
         user: {
           id: user.id,
           telegramId: user.telegramId,
