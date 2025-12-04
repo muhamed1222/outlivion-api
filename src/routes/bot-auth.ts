@@ -47,6 +47,13 @@ router.post('/create-login-token', createTokenLimiter, async (req, res) => {
   try {
     const body = createLoginTokenSchema.parse(req.body);
 
+    // Validate bot username is configured
+    const botUsername = process.env.TELEGRAM_BOT_USERNAME || process.env.NEXT_PUBLIC_TELEGRAM_BOT_NAME || 'outlivionbot';
+    
+    if (!botUsername || botUsername === 'outlivionbot') {
+      logger.warn('TELEGRAM_BOT_USERNAME not configured, using default');
+    }
+
     // Generate secure token
     const token = crypto.randomBytes(32).toString('hex');
 
@@ -60,13 +67,14 @@ router.post('/create-login-token', createTokenLimiter, async (req, res) => {
       expiresAt,
     });
 
-    // Get bot username from env
-    const botUsername = process.env.TELEGRAM_BOT_USERNAME || 'outlivionbot';
-
     // Generate bot deep-link URL
     const botUrl = `https://t.me/${botUsername}?start=login_${token}`;
 
-    logger.info('Login token created', { token, expiresAt });
+    logger.info('Login token created', { 
+      token: token.substring(0, 8) + '...', // Log only first 8 chars for security
+      expiresAt,
+      botUsername,
+    });
 
     res.json({
       token,
@@ -74,13 +82,38 @@ router.post('/create-login-token', createTokenLimiter, async (req, res) => {
       expiresAt: expiresAt.toISOString(),
     });
   } catch (error: any) {
-    logger.error('Failed to create login token', { error: error.message });
+    logger.error('Failed to create login token', { 
+      error: error.message,
+      stack: error.stack,
+      type: error.constructor.name,
+    });
     
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      return res.status(400).json({ 
+        error: 'Invalid request data', 
+        details: error.errors 
+      });
     }
 
-    res.status(500).json({ error: 'Failed to create login token' });
+    // Provide more specific error messages
+    if (error.code === 'ECONNREFUSED' || error.code === 'ETIMEDOUT') {
+      return res.status(503).json({ 
+        error: 'Database connection error',
+        message: 'Unable to connect to database. Please try again later.',
+      });
+    }
+
+    if (error.code === '23505') { // PostgreSQL unique violation
+      return res.status(409).json({ 
+        error: 'Token conflict',
+        message: 'Please try again.',
+      });
+    }
+
+    res.status(500).json({ 
+      error: 'Failed to create login token',
+      message: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error',
+    });
   }
 });
 

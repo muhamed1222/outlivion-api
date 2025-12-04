@@ -1,10 +1,14 @@
 // @ts-nocheck
-import { migrate } from 'drizzle-orm/node-postgres/migrator';
-import { db } from './index';
+// IMPORTANT: Load .env BEFORE importing db
 import * as dotenv from 'dotenv';
 import path from 'path';
 
+// Load environment variables first
 dotenv.config();
+
+// Now import db (which depends on DATABASE_URL)
+import { migrate } from 'drizzle-orm/node-postgres/migrator';
+import { db } from './index';
 
 async function runMigrations() {
   console.log('Running migrations...');

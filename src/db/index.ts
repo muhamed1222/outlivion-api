@@ -1,10 +1,14 @@
 // @ts-nocheck
+// Ensure dotenv is loaded (for local development and migrate script)
+import dotenv from 'dotenv';
+dotenv.config();
+
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { Pool } from 'pg';
 import * as schema from './schema';
 
 // На Vercel переменные окружения загружаются автоматически
-// Для локальной разработки dotenv загружается в index.ts
+// Для локальной разработки dotenv загружается здесь
 
 if (!process.env.DATABASE_URL) {
   console.error('DATABASE_URL is not set. Available env vars:', Object.keys(process.env).filter(k => !k.startsWith('npm_')));
